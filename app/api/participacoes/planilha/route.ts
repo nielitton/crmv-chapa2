@@ -1,7 +1,8 @@
 import { createHash, timingSafeEqual } from 'node:crypto';
-import { baixarPlanilha } from '../../../../lib/participacoes.ts';
+import { baixarPlanilha, ArmazenamentoNaoConfigurado } from '../../../../lib/participacoes.ts';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 export const dynamic = 'force-dynamic';
 
 const headers = { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' };
@@ -27,7 +28,11 @@ export async function GET(request: Request) {
         'Content-Disposition': 'attachment; filename="cadastros.xlsx"',
       },
     });
-  } catch {
+  } catch (error) {
+    console.error('[planilha] Falha na exportação', { type: error instanceof Error ? error.name : 'Unknown' });
+    if (error instanceof ArmazenamentoNaoConfigurado) {
+      return new Response('Conecte o armazenamento privado ao projeto para habilitar a planilha.', { status: 503, headers });
+    }
     return new Response('Não foi possível baixar a planilha. Tente novamente.', { status: 500, headers });
   }
 }

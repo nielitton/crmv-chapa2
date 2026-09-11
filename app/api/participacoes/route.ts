@@ -1,6 +1,7 @@
-import { salvarParticipacao } from '../../../lib/participacoes.ts';
+import { salvarParticipacao, ArmazenamentoNaoConfigurado } from '../../../lib/participacoes.ts';
 
 export const runtime = 'nodejs';
+export const maxDuration = 60;
 
 const uncertainMessage = 'Não foi possível confirmar o envio. Sua resposta pode ter sido recebida; evite reenviar antes de confirmar com a equipe da pesquisa.';
 
@@ -70,8 +71,14 @@ export async function POST(request: Request) {
   try {
     await salvarParticipacao({ name, crmv, email, phone, area, otherArea, cities: (cities as string[]).map(city => city.trim()), improvements });
     return json({ ok: true, message: 'Participação registrada com sucesso.' });
-  } catch {
+  } catch (error) {
     // Não repetir automaticamente: uma interrupção pode ocorrer após a gravação.
+    // Registra o diagnóstico no servidor sem incluir os dados pessoais do formulário.
+    const code = (error as NodeJS.ErrnoException)?.code || 'UNKNOWN';
+    console.error('[participacoes] Falha no Blob privado', { code, type: error instanceof Error ? error.name : 'Unknown' });
+    if (error instanceof ArmazenamentoNaoConfigurado) {
+      return json({ ok: false, message: 'O armazenamento dos cadastros ainda não foi configurado pela equipe.' }, 503);
+    }
     return json({ ok: false, message: uncertainMessage }, 502);
   }
 }
