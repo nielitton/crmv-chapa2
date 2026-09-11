@@ -34,6 +34,10 @@ mock.module('@vercel/blob', { namedExports: {
 } });
 const { POST } = await import('../app/api/participacoes/route.ts');
 const { GET } = await import('../app/api/participacoes/planilha/route.ts');
+const { GET: adminGet } = await import('../app/api/admin/cadastros/route.ts');
+const adminRequest = (password) => new Request('https://pesquisa.example/api/admin/cadastros', {
+  headers: password === undefined ? {} : { authorization: 'Basic ' + Buffer.from('admin:' + password).toString('base64') },
+});
 const payload = { name: 'Maria Silva', crmv: '00123', email: 'maria@example.com', phone: '(85) 99999-9999', area: 'Outra', otherArea: 'Consultoria', cities: ['Fortaleza - CE'], improvements: '=1+1' };
 const request = (body = payload, origin = 'https://pesquisa.example') => new Request('https://pesquisa.example/api/participacoes', {
   method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
@@ -58,6 +62,10 @@ test('Blob privado: concorrência, paginação, redeploy, Excel e autenticação
   try {
     assert.equal((await download()).status, 401);
     assert.equal((await download('wrong')).status, 401);
+    assert.equal((await adminGet(adminRequest())).status, 401);
+    const unauthorized = await adminGet(adminRequest('wrong'));
+    assert.equal(unauthorized.status, 401);
+    assert.equal(unauthorized.headers.has('www-authenticate'), false);
     assert.equal(listCalls, 0);
     const empty = await download('test-password');
     assert.equal(empty.status, 200);
@@ -95,10 +103,21 @@ test('Blob privado: concorrência, paginação, redeploy, Excel e autenticação
       assert.equal(row.getCell(8).type, ExcelJS.ValueType.String);
     });
     assert.equal(new Set(names).size, 8);
+    const adminResponse = await adminGet(adminRequest('test-password'));
+    assert.equal(adminResponse.status, 200);
+    assert.equal(adminResponse.headers.get('cache-control'), 'no-store');
+    const adminData = await adminResponse.json();
+    assert.equal(adminData.registros.length, 8);
+    assert.equal(adminData.registros[0].improvements, '=1+1');
+    assert.ok(adminData.registros.every((row, index, rows) => index === 0 || rows[index - 1].createdAt >= row.createdAt));
+    process.env.PLANILHA_SENHA = 'changed-password';
+    assert.equal((await adminGet(adminRequest('test-password'))).status, 401);
+    process.env.PLANILHA_SENHA = 'test-password';
     // Nova instância do módulo recupera os mesmos objetos, sem depender de arquivos locais.
     const fresh = await import('../lib/participacoes.ts?redeploy');
     assert.equal((await sheetFrom(await fresh.baixarPlanilha())).rowCount, 9);
     failure = 'get';
+    assert.equal((await adminGet(adminRequest('test-password'))).status, 502);
     assert.equal((await download('test-password')).status, 500); // Não entrega Excel incompleto.
     failure = 'put';
     const failed = await POST(request());

@@ -7,7 +7,7 @@ export type Participacao = {
   area: string; otherArea: string; cities: string[]; improvements: string;
 };
 
-type Registro = Participacao & { version: 1; id: string; createdAt: string };
+export type Registro = Participacao & { version: 1; id: string; createdAt: string };
 
 export class ArmazenamentoNaoConfigurado extends Error {
   constructor() {
@@ -51,7 +51,7 @@ function lerRegistro(value: unknown): Registro {
   return value as Registro;
 }
 
-export async function baixarPlanilha() {
+export async function listarParticipacoes() {
   const pasta = prefixo();
   const registros: Registro[] = [];
   let cursor: string | undefined;
@@ -71,6 +71,11 @@ export async function baixarPlanilha() {
   } while (cursor);
 
   registros.sort((a, b) => a.createdAt.localeCompare(b.createdAt) || a.id.localeCompare(b.id));
+  return registros;
+}
+
+export async function baixarPlanilha() {
+  const registros = await listarParticipacoes();
   const workbook = new ExcelJS.Workbook();
   const sheet = workbook.addWorksheet('Respostas', { views: [{ state: 'frozen', ySplit: 1 }] });
   sheet.addRow(['Data e hora (Fortaleza)', 'Nome completo', 'Nº CRMV', 'E-mail',

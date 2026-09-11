@@ -49,3 +49,9 @@ npm run build
 ```
 
 Os testes simulam o SDK do Blob: verificam envios concorrentes, paginação, recuperação por uma nova instância do aplicativo, separação entre produção e preview, proteção do download e falhas de gravação/leitura. A conexão OIDC real deve ser validada no deploy Vercel.
+
+## Consultar os cadastros na página administrativa
+
+Abra **`/admin`** no domínio de produção e entre com a mesma **PLANILHA_SENHA** do Excel. O painel mostra os cadastros mais recentes primeiro, com busca por nome, CRMV, contato, área, cidade ou sugestão, páginas de 25 registros, botão de atualização e download do Excel completo. As sugestões podem ser expandidas na tabela.
+
+A senha fica somente na memória da página enquanto ela estiver aberta. **Sair** limpa os dados da tela e a credencial; recarregar a página exige entrar novamente. A API verifica a senha antes de consultar o Blob, e as respostas não são armazenadas em cache. Use o domínio HTTPS da aplicação.
