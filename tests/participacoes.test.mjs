@@ -8,7 +8,7 @@ test('API valida os dados e confirma somente gravações aceitas pelo Apps Scrip
   const originalToken = process.env.GOOGLE_SHEETS_TOKEN;
   process.env.GOOGLE_SHEETS_URL = 'https://example.com/apps-script';
   process.env.GOOGLE_SHEETS_TOKEN = 'server-only-test-token';
-  const payload = { name: 'Maria Silva', crmv: 'CRMV-CE 00123', email: 'maria@example.com', phone: '(85) 99999-9999', area: 'Outra', otherArea: 'Consultoria', cities: ['Fortaleza - CE'] };
+  const payload = { name: 'Maria Silva', crmv: 'CRMV-CE 00123', email: 'maria@example.com', phone: '(85) 99999-9999', area: 'Outra', otherArea: 'Consultoria', cities: ['Fortaleza - CE'], improvements: 'Mais capacitações no interior.' };
   const request = (body = payload, origin = 'https://pesquisa.example') => new Request('https://pesquisa.example/api/participacoes', {
     method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
@@ -21,6 +21,7 @@ test('API valida os dados e confirma somente gravações aceitas pelo Apps Scrip
       assert.equal(body.phone, '85999999999');
       assert.equal(body.crmv, 'CRMV-CE 00123');
       assert.equal(body.otherArea, 'Consultoria');
+      assert.equal(body.improvements, 'Mais capacitações no interior.');
       return Response.json({ ok: true });
     };
     assert.equal((await POST(request(payload, 'https://another.example'))).status, 403);
@@ -28,8 +29,13 @@ test('API valida os dados e confirma somente gravações aceitas pelo Apps Scrip
     assert.equal((await POST(request({ ...payload, otherArea: '' }))).status, 400);
     assert.equal((await POST(request({ ...payload, email: 'invalid' }))).status, 400);
     assert.equal((await POST(request({ ...payload, phone: '123' }))).status, 400);
+    assert.equal((await POST(request({ ...payload, improvements: 'a'.repeat(2001) }))).status, 400);
+    assert.equal((await POST(request({ ...payload, improvements: 123 }))).status, 400);
+    for (const improvements of [undefined, '', '   ']) {
+      assert.equal((await POST(request({ ...payload, improvements }))).status, 400);
+    }
     assert.equal(calls, 0);
-    const success = await POST(request({ ...payload, token: 'client-cannot-override' }));
+    const success = await POST(request({ ...payload, token: 'client-cannot-override', improvements: '  Mais capacitações no interior.  ' }));
     assert.equal(success.status, 200);
     assert.equal((await success.json()).ok, true);
     assert.equal(calls, 1);

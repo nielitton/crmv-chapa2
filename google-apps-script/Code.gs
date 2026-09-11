@@ -6,7 +6,8 @@
 const ABA_RESPOSTAS = 'Respostas';
 const CABECALHOS = [
   'Data e hora', 'Nome completo', 'Nº CRMV', 'E-mail',
-  'Celular / WhatsApp', 'Área de atuação', 'Cidades de atuação'
+  'Celular / WhatsApp', 'Área de atuação', 'Cidades de atuação',
+  'Nos diga no que o CRMV pode melhorar!?'
 ];
 
 function configurar() {
@@ -65,8 +66,8 @@ function doPost(e) {
     const linha = aba.getLastRow() + 1;
     if (linha > aba.getMaxRows()) aba.insertRowsAfter(aba.getMaxRows(), 100);
     // Preserva zeros e telefone como texto. Impede que entradas sejam fórmulas.
-    aba.getRange(linha, 2, 1, 6).setNumberFormat('@');
-    aba.getRange(linha, 1, 1, 7).setValues([[
+    aba.getRange(linha, 2, 1, CABECALHOS.length - 1).setNumberFormat('@');
+    aba.getRange(linha, 1, 1, CABECALHOS.length).setValues([[
       new Date(), ...resposta.map(textoSeguro_)
     ]]);
     aba.getRange(linha, 1).setNumberFormat('dd/MM/yyyy HH:mm:ss');
@@ -108,7 +109,12 @@ function validar_(dados) {
     const valor = cidade.trim();
     if (!cidades.some(function (item) { return item.toLowerCase() === valor.toLowerCase(); })) cidades.push(valor);
   });
-  return [nome, crmv, email, telefone, area, cidades.join('; ')];
+  if (typeof dados.improvements !== 'string' || !dados.improvements.trim() ||
+      dados.improvements.length > 2000) {
+    throw new Error('Informe sua sugestão para o CRMV em até 2.000 caracteres.');
+  }
+  const melhorias = dados.improvements.trim();
+  return [nome, crmv, email, telefone, area, cidades.join('; '), melhorias];
 }
 
 function prepararAba_(planilha) {
@@ -121,10 +127,15 @@ function prepararAba_(planilha) {
     aba.setColumnWidth(7, 350);
   } else {
     const atuais = aba.getRange(1, 1, 1, CABECALHOS.length).getValues()[0];
-    if (atuais.some(function (titulo, i) { return titulo !== CABECALHOS[i]; })) {
+    if (atuais.some(function (titulo, i) {
+      return titulo !== CABECALHOS[i] && !(i === 7 && titulo === '');
+    })) {
       throw new Error('A aba Respostas tem cabeçalhos diferentes dos esperados.');
     }
   }
+  aba.getRange(1, 8).setValue(CABECALHOS[7])
+    .setBackground('#041b38').setFontColor('#ffffff').setFontWeight('bold');
+  aba.setColumnWidth(8, 350);
   return aba;
 }
 

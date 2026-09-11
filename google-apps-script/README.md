@@ -12,6 +12,8 @@
 
 Ao editar o script depois, vá a **Implantar → Gerenciar implantações → Editar → Nova versão → Implantar** para atualizar o endpoint existente.
 
+O campo obrigatório `improvements` aceita até 2.000 caracteres. A versão atual adiciona a coluna de sugestões ao final da aba existente, preservando as respostas anteriores. Para habilitar a gravação desse campo, atualize o código e publique uma nova versão da implantação.
+
 ## Enviar uma resposta
 
 Os nomes dos campos são os mesmos do formulário Next.js. Exemplo de JavaScript **para executar no servidor**, usando `fetch`:
@@ -29,6 +31,7 @@ const resposta = await fetch(process.env.GOOGLE_SHEETS_URL, {
     phone: '(85) 99999-9999',
     area: 'Clínica de pequenos animais',
     cities: ['Fortaleza - CE', 'Caucaia - CE'],
+    improvements: 'Oferecer mais capacitações no interior.',
   }),
 });
 

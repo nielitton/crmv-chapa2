@@ -55,6 +55,11 @@ export async function POST(request: Request) {
   const area = text('area', 150);
   const otherArea = text('otherArea', 150);
   const cities = data.cities;
+  if (typeof data.improvements !== 'string' || !data.improvements.trim() ||
+      data.improvements.length > 2000) {
+    return json({ ok: false, message: 'Informe sua sugestão para o CRMV em até 2.000 caracteres.' }, 400);
+  }
+  const improvements = text('improvements', 2000);
   if (!name || name.split(/\s+/).length < 2 || !crmv ||
       !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || phone.length !== 11 ||
       !area || (area === 'Outra' && !otherArea) ||
@@ -70,7 +75,7 @@ export async function POST(request: Request) {
       redirect: 'follow',
       cache: 'no-store',
       signal: AbortSignal.timeout(25000),
-      body: JSON.stringify({ name, crmv, email, phone, area, otherArea, cities, token }),
+      body: JSON.stringify({ name, crmv, email, phone, area, otherArea, cities, improvements, token }),
     });
     if (!response.ok) return json({ ok: false, message: uncertainMessage }, 502);
     const result = await response.json();
