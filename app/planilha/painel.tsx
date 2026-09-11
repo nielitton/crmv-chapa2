@@ -68,7 +68,7 @@ export default function Admin() {
     setDownloading(true);
     setError('');
     try {
-      const response = await fetch('/api/participacoes/planilha', { headers: { Authorization: authorization.current }, cache: 'no-store' });
+      const response = await fetch('/api/admin/planilha', { headers: { Authorization: authorization.current }, cache: 'no-store' });
       if (!response.ok) {
         if (response.status === 401) logout();
         throw new Error(await response.text());

@@ -33,7 +33,7 @@ mock.module('@vercel/blob', { namedExports: {
   },
 } });
 const { POST } = await import('../app/api/participacoes/route.ts');
-const { GET } = await import('../app/api/participacoes/planilha/route.ts');
+const { GET } = await import('../app/api/admin/planilha/route.ts');
 const { GET: adminGet } = await import('../app/api/admin/cadastros/route.ts');
 const adminRequest = (password) => new Request('https://pesquisa.example/api/admin/cadastros', {
   headers: password === undefined ? {} : { authorization: 'Basic ' + Buffer.from('admin:' + password).toString('base64') },
@@ -42,7 +42,7 @@ const payload = { name: 'Maria Silva', crmv: '00123', email: 'maria@example.com'
 const request = (body = payload, origin = 'https://pesquisa.example') => new Request('https://pesquisa.example/api/participacoes', {
   method: 'POST', headers: { origin, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
 });
-const download = (password) => GET(new Request('https://pesquisa.example/api/participacoes/planilha', {
+const download = (password) => GET(new Request('https://pesquisa.example/api/admin/planilha', {
   headers: password === undefined ? {} : { authorization: 'Basic ' + Buffer.from('admin:' + password).toString('base64') },
 }));
 async function sheetFrom(bytes) {

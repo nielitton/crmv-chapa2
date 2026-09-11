@@ -36,7 +36,7 @@ Referência: [Vercel Blob privado e autenticação](https://vercel.com/docs/verc
 
 ## Baixar a planilha
 
-Abra **`/api/participacoes/planilha`** no domínio de produção. O navegador pede usuário **admin** e a senha definida em **PLANILHA_SENHA**. Nenhum dado é consultado antes da autenticação. Sem cadastros, o Excel contém apenas os cabeçalhos. Se houver erro ao ler qualquer cadastro, a exportação falha em vez de entregar uma planilha incompleta.
+Abra **`/planilha`** no domínio de produção, entre com **PLANILHA_SENHA** e clique em **Baixar Excel**. Nenhum dado é consultado antes da autenticação. Sem cadastros, o Excel contém apenas os cabeçalhos. Se houver erro ao ler qualquer cadastro, a exportação falha em vez de entregar uma planilha incompleta.
 
 A exportação percorre todas as páginas do Blob e faz até dez leituras simultâneas. O tempo de execução foi configurado para até 60 segundos; volumes muito grandes podem exigir exportação em segundo plano. A planilha inclui os registros retornados durante a consulta, não uma transação congelada enquanto novos envios chegam.
 
@@ -52,6 +52,8 @@ Os testes simulam o SDK do Blob: verificam envios concorrentes, paginação, rec
 
 ## Consultar os cadastros na página administrativa
 
-Abra **`/admin`** no domínio de produção e entre com a mesma **PLANILHA_SENHA** do Excel. O painel mostra os cadastros mais recentes primeiro, com busca por nome, CRMV, contato, área, cidade ou sugestão, páginas de 25 registros, botão de atualização e download do Excel completo. As sugestões podem ser expandidas na tabela.
+Abra **`/planilha`** no domínio de produção e entre com a mesma **PLANILHA_SENHA** do Excel. O painel mostra os cadastros mais recentes primeiro, com busca por nome, CRMV, contato, área, cidade ou sugestão, páginas de 25 registros, botão de atualização e download do Excel completo. As sugestões podem ser expandidas na tabela.
 
 A senha fica somente na memória da página enquanto ela estiver aberta. **Sair** limpa os dados da tela e a credencial; recarregar a página exige entrar novamente. A API verifica a senha antes de consultar o Blob, e as respostas não são armazenadas em cache. Use o domínio HTTPS da aplicação.
+
+Os endereços antigos `/admin` e `/api/participacoes/planilha` redirecionam para `/planilha`. O download é feito pelo botão do painel, usando uma API interna protegida pela mesma senha.
