@@ -2,7 +2,9 @@
 
 import Image from 'next/image';
 import { useRef, useState, type FormEvent } from 'react';
-import { ArrowDown, ArrowRight, Check, CheckCheck, ChevronDown, Clock3, HeartHandshake, MapPin, Plus, ShieldCheck, Sprout, Users, X } from 'lucide-react';
+import { ArrowDown, ArrowRight, Check, CheckCheck, ChevronDown, Clock3, HeartHandshake, MapPin, MessageCircle, Plus, ShieldCheck, Sprout, Users, X } from 'lucide-react';
+
+const whatsappUrl = `https://wa.me/5585999416167?text=${encodeURIComponent('Olá! Já me cadastrei e preenchi meus dados na página Ação e Valorização.')}`;
 
 const areas = ['Clínica de pequenos animais', 'Clínica de grandes animais', 'Animais silvestres e exóticos', 'Saúde pública', 'Inspeção e segurança de alimentos', 'Produção animal e zootecnia', 'Ensino e pesquisa', 'Gestão e consultoria', 'Outra'];
 
@@ -51,6 +53,7 @@ export default function Home() {
       }
       setSaved(true);
       document.getElementById('pesquisa')?.scrollIntoView({ block: 'start' });
+      window.location.assign(whatsappUrl);
     } catch {
       setError('Não foi possível confirmar o envio. Sua resposta pode ter sido recebida; confirme com a equipe antes de reenviar.');
     } finally {
@@ -87,7 +90,7 @@ export default function Home() {
           </aside>
 
           <section id="pesquisa" className="form-card">
-            {saved && <div className="success" role="status"><span className="success-icon"><CheckCheck size={36} /></span><div className="eyebrow">PARTICIPAÇÃO REGISTRADA</div><h2>Obrigado por compartilhar<br />a sua trajetória!</h2><p>Sua resposta foi recebida com sucesso. Obrigado por fazer parte dessa iniciativa!</p></div>}<div hidden={saved}>
+            {saved && <div className="success" role="status"><span className="success-icon"><CheckCheck size={36} /></span><div className="eyebrow">PARTICIPAÇÃO REGISTRADA</div><h2>Obrigado por compartilhar<br />a sua trajetória!</h2><p>Sua resposta foi recebida com sucesso. Obrigado por fazer parte dessa iniciativa!</p><a className="submit-button" href={whatsappUrl} target="_blank" rel="noopener noreferrer"><MessageCircle size={20} aria-hidden="true" /> Avisar pelo WhatsApp</a></div>}<div hidden={saved}>
               <div className="card-heading"><div><h2>Vamos conhecer você?</h2><p>Preencha seus dados para fazer parte dessa iniciativa.</p></div><span className="heading-icon"><HeartHandshake size={22} strokeWidth={1.5} /></span></div>
               <form onSubmit={submit} aria-busy={sending}><fieldset disabled={sending} className="form-fields">
                 <div className="form-section-title"><span>01</span><h3>Seus dados</h3><div /><small>* Campos obrigatórios</small></div>

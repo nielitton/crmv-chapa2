@@ -1,3 +1,5 @@
+import { salvarParticipacao } from '../../../lib/participacoes.ts';
+
 export const runtime = 'nodejs';
 
 const uncertainMessage = 'Não foi possível confirmar o envio. Sua resposta pode ter sido recebida; evite reenviar antes de confirmar com a equipe da pesquisa.';
@@ -29,9 +31,6 @@ export async function POST(request: Request) {
   if (!validOrigin(request)) {
     return json({ ok: false, message: 'Origem da requisição inválida.' }, 403);
   }
-  const url = process.env.GOOGLE_SHEETS_URL;
-  const token = process.env.GOOGLE_SHEETS_TOKEN;
-  if (!url || !token) return json({ ok: false, message: 'O envio da pesquisa ainda não foi configurado.' }, 503);
 
   let data: Record<string, unknown>;
   try {
@@ -69,27 +68,10 @@ export async function POST(request: Request) {
   }
 
   try {
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      redirect: 'follow',
-      cache: 'no-store',
-      signal: AbortSignal.timeout(25000),
-      body: JSON.stringify({ name, crmv, email, phone, area, otherArea, cities, improvements, token }),
-    });
-    if (!response.ok) return json({ ok: false, message: uncertainMessage }, 502);
-    const result = await response.json();
-    if (result?.ok === true) return json({ ok: true, message: 'Participação registrada com sucesso.' });
-    if (result?.code === 'VALIDATION_ERROR') {
-      return json({ ok: false, message: typeof result.message === 'string' ? result.message : 'Confira os dados informados.' }, 400);
-    }
-    if (result?.code === 'BUSY') return json({ ok: false, message: 'Muitos envios simultâneos. Tente novamente em instantes.' }, 503);
-    if (result?.code === 'NOT_CONFIGURED' || result?.code === 'UNAUTHORIZED') {
-      return json({ ok: false, message: 'O serviço de envio precisa ser configurado pela equipe da pesquisa.' }, 503);
-    }
-    return json({ ok: false, message: uncertainMessage }, 502);
+    await salvarParticipacao({ name, crmv, email, phone, area, otherArea, cities: (cities as string[]).map(city => city.trim()), improvements });
+    return json({ ok: true, message: 'Participação registrada com sucesso.' });
   } catch {
-    // A falha pode ocorrer após a gravação. Não repetir o POST automaticamente.
+    // Não repetir automaticamente: uma interrupção pode ocorrer após a gravação.
     return json({ ok: false, message: uncertainMessage }, 502);
   }
 }
